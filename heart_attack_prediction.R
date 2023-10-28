@@ -39,8 +39,3 @@ thresholded <- function(x, thresh = 0.5){
 }
 conf_matrix <-confusionMatrix(data = test_target, reference = thresholded(result, 0.5))
 conf_matrix
-
-#ggplot(data = train_data, aes(x = age))+geom_histogram()
-#ggplot(data = train_data, aes(x = oldpeak, fill = output))+geom_histogram()
-#sex = 1 corresponds to male
-#ggplot(data = data, aes(x = as.factor(sex), fill = as.factor(sex)))+geom_bar()+scale_x_discrete(labels = c("Female", "Male"))+xlab("Sex")+theme(legend.position="none")
