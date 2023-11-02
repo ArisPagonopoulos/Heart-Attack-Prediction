@@ -4,8 +4,9 @@ library(boot)
 library(MASS)
 library(car)
 library(caret)
+library(glmnet)
 
-set.seed(42)
+set.seed(1)
 data <-read.csv("C:\\Users\\aris\\Documents\\Learning is fun\\Projects\\R projects\\data\\heart.csv")
 head(data)
 #data cleaning
@@ -37,5 +38,28 @@ thresholded <- function(x, thresh = 0.5){
   predictions[x>thresh] <-1
   return (as.factor(predictions))
 }
-conf_matrix <-confusionMatrix(data = test_target, reference = thresholded(result, 0.5))
+conf_matrix <-confusionMatrix(data = thresholded(result, 0.5), reference = test_target)
 conf_matrix
+
+#Regularization
+#The parameter estimations are calculated using maximum likehood estimation, which is prone to overfitting.
+#Therefore we can try a regularization method like lasso and ridge regression in order to mitigate that
+
+x<-model.matrix(output~., train_data)[,-1] #lm method automatically creates one hot encoding for factors,
+#in this method we have to do the one hot encoding with model.matrix
+y<-train_data$output
+
+cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial") # a = 1 is the l1 norm
+#cv.glmnet chooses the strength of regularization automatically
+
+strength <-cv.lasso$lambda.min
+
+lasso_model <-glmnet(x, y, alpha = 1, family = "binomial", lambda = strength)
+
+#predictions
+x_test <-model.matrix(output~., data[-train_index,])[,-1]
+probabilities <-lasso_model %>% predict(x_test, type = "response")
+predicted_classes <-as.factor(ifelse(probabilities>0.5, 1,0))
+
+#confusionmatrix
+confusionMatrix(data = predicted_classes, reference = test_target)
